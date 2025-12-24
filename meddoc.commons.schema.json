@@ -1,0 +1,456 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aqbqv.github.io/schemas/meddoc-commons.schema.json",
+  "title": "Schema for meddoc-commons configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "team",
+    "email",
+    "members",
+    "repoConfig"
+  ],
+  "properties": {
+    "team": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable team name."
+    },
+    "email": {
+      "$ref": "#/$defs/email"
+    },
+    "members": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Team member list with identities and roles.",
+      "items": {
+        "$ref": "#/$defs/member"
+      }
+    },
+    "repoConfig": {
+      "$ref": "#/$defs/repoConfig"
+    }
+  },
+  "$defs": {
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Team distribution list email address."
+    },
+    "githubUsername": {
+      "type": "string",
+      "minLength": 1,
+      "description": "GitHub username/handle (case-sensitive as stored)."
+    },
+    "jiraUser": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Jira username/account key as used for authentication and mentions."
+    },
+    "role": {
+      "type": "string",
+      "description": "Member role used for access control and automation decisions.",
+      "enum": [
+        "dev",
+        "po",
+        "sm"
+      ]
+    },
+    "member": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "github",
+        "jira",
+        "role"
+      ],
+      "properties": {
+        "github": {
+          "$ref": "#/$defs/githubUsername"
+        },
+        "jira": {
+          "$ref": "#/$defs/jiraUser"
+        },
+        "role": {
+          "$ref": "#/$defs/role"
+        }
+      },
+      "description": "Single team member identity mapping."
+    },
+    "boolOrStringBool": {
+      "description": "Boolean flag. Accepts boolean or legacy string values ('true'/'false').",
+      "oneOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "string",
+          "enum": [
+            "true",
+            "false"
+          ]
+        }
+      ]
+    },
+    "repoConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enableCherry",
+        "jiraIntegration",
+        "autoMaintenance",
+        "releaseGuard",
+        "githubLabelsConfig",
+        "githubLabels"
+      ],
+      "properties": {
+        "enableCherry": {
+          "$ref": "#/$defs/boolOrStringBool",
+          "default": true,
+          "description": "Enables cherry-pick helper automation in the repository."
+        },
+        "jiraIntegration": {
+          "$ref": "#/$defs/jiraIntegration"
+        },
+        "autoMaintenance": {
+          "$ref": "#/$defs/autoMaintenance"
+        },
+        "releaseGuard": {
+          "$ref": "#/$defs/releaseGuard"
+        },
+        "githubLabelsConfig": {
+          "$ref": "#/$defs/githubLabelsConfig"
+        },
+        "githubLabels": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Declarative label catalog to be enforced in GitHub.",
+          "items": {
+            "$ref": "#/$defs/githubLabel"
+          }
+        }
+      },
+      "description": "Repository automation and governance configuration."
+    },
+    "jiraIntegration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "baseUrl",
+        "reviewerRoles",
+        "devRoles"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enables Jira integration features."
+        },
+        "baseUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "Base URL of the Jira instance (e.g., https://jira.dedalus.com)."
+        },
+        "reviewerRoles": {
+          "type": "array",
+          "minItems": 0,
+          "description": "Roles considered eligible as reviewers in automation logic.",
+          "items": {
+            "$ref": "#/$defs/role"
+          }
+        },
+        "devRoles": {
+          "type": "array",
+          "minItems": 0,
+          "description": "Roles considered as developers for development-related automation.",
+          "items": {
+            "$ref": "#/$defs/role"
+          }
+        }
+      },
+      "description": "Jira connectivity and role mapping."
+    },
+    "autoMaintenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "rules"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enables scheduled or triggered repository maintenance tasks."
+        },
+        "rules": {
+          "type": "array",
+          "minItems": 0,
+          "description": "Maintenance rules applied in order.",
+          "items": {
+            "$ref": "#/$defs/maintenanceRule"
+          }
+        }
+      },
+      "description": "Repository auto-maintenance (copy/sync) configuration."
+    },
+    "maintenanceRuleType": {
+      "type": "string",
+      "description": "Type of maintenance action.",
+      "enum": [
+        "copyDirectoryContents",
+        "copyDirectoryTree",
+        "copySingleFile"
+      ]
+    },
+    "maintenanceRuleBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "overwrite"
+      ],
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/maintenanceRuleType"
+        },
+        "overwrite": {
+          "type": "boolean",
+          "default": true,
+          "description": "If true, existing target files will be overwritten."
+        }
+      }
+    },
+    "maintenanceRule": {
+      "description": "One maintenance rule. Shape depends on 'type'.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ruleCopyDirectoryContents"
+        },
+        {
+          "$ref": "#/$defs/ruleCopyDirectoryTree"
+        },
+        {
+          "$ref": "#/$defs/ruleCopySingleFile"
+        }
+      ]
+    },
+    "ruleCopyDirectoryContents": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/maintenanceRuleBase"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "overwrite",
+            "sourceDirectory",
+            "targetDirectory",
+            "fileEndings"
+          ],
+          "properties": {
+            "type": {
+              "const": "copyDirectoryContents"
+            },
+            "sourceDirectory": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Path to a source directory. Only its direct contents are copied."
+            },
+            "targetDirectory": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Path to the target directory to receive the copied files."
+            },
+            "fileEndings": {
+              "type": "array",
+              "minItems": 0,
+              "description": "File extensions to include (e.g., ['.yml', '.md']).",
+              "items": {
+                "$ref": "#/$defs/fileEnding"
+              }
+            }
+          },
+          "description": "Copies the direct contents of a directory, optionally filtered by file endings."
+        }
+      ]
+    },
+    "ruleCopyDirectoryTree": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/maintenanceRuleBase"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "overwrite",
+            "sourceDirectory",
+            "targetDirectory"
+          ],
+          "properties": {
+            "type": {
+              "const": "copyDirectoryTree"
+            },
+            "sourceDirectory": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Path to a source directory (entire tree copied)."
+            },
+            "targetDirectory": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Path to the target directory root."
+            }
+          },
+          "description": "Copies an entire directory tree to a target location."
+        }
+      ]
+    },
+    "ruleCopySingleFile": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/maintenanceRuleBase"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "overwrite",
+            "source",
+            "target"
+          ],
+          "properties": {
+            "type": {
+              "const": "copySingleFile"
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Source file path."
+            },
+            "target": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Target file path."
+            }
+          },
+          "description": "Copies exactly one file from source to target."
+        }
+      ]
+    },
+    "fileEnding": {
+      "type": "string",
+      "pattern": "^\\.[A-Za-z0-9]+$",
+      "description": "A file extension including the leading dot (e.g., .yml)."
+    },
+    "releaseGuard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "checkForVersionMismatch",
+        "checkForAllowedBranches",
+        "checkForFixedAnnotations",
+        "allowedBranchesForRelease"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enables release guard checks."
+        },
+        "checkForVersionMismatch": {
+          "type": "boolean",
+          "default": true,
+          "description": "If true, verifies version consistency (e.g., tag vs files)."
+        },
+        "checkForAllowedBranches": {
+          "type": "boolean",
+          "default": true,
+          "description": "If true, restricts releases to allowed branches."
+        },
+        "checkForFixedAnnotations": {
+          "type": "boolean",
+          "default": true,
+          "description": "If true, blocks releases when forbidden fixed annotations are present."
+        },
+        "allowedBranchesForRelease": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Branch name patterns allowed to trigger a release.",
+          "items": {
+            "$ref": "#/$defs/branchPattern"
+          }
+        }
+      },
+      "description": "Release policy and validation controls."
+    },
+    "branchPattern": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Branch name or glob-like pattern (e.g., 'release/*')."
+    },
+    "githubLabelsConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "removeUnspecifiedLabels",
+        "createVersionLabels"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enables label synchronization to GitHub."
+        },
+        "removeUnspecifiedLabels": {
+          "type": "boolean",
+          "default": true,
+          "description": "If true, removes labels not declared in 'githubLabels'."
+        },
+        "createVersionLabels": {
+          "type": "boolean",
+          "default": true,
+          "description": "If true, automatically creates version labels (e.g., from tags/releases)."
+        }
+      },
+      "description": "Label synchronization behavior."
+    },
+    "githubLabel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "description",
+        "color"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "GitHub label name."
+        },
+        "description": {
+          "type": "string",
+          "description": "Label description shown in GitHub."
+        },
+        "color": {
+          "$ref": "#/$defs/hexColor"
+        }
+      },
+      "description": "Single GitHub label definition."
+    },
+    "hexColor": {
+      "type": "string",
+      "pattern": "^[0-9A-Fa-f]{6}$",
+      "description": "6-digit hex color without leading '#', as required by GitHub labels (e.g., '2563EB')."
+    }
+  }
+}
