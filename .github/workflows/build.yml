@@ -1,0 +1,93 @@
+name: Build
+on:
+  workflow_dispatch:
+
+
+jobs:
+  A1-Update-Scripting:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Echo
+        run: echo "This is a build workflow."
+
+  A2-Quality-Gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Echo
+        run: echo "This is a build workflow."
+
+  A3-Report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Echo
+        run: echo "This is a build workflow."
+
+  B1-Build:
+    runs-on: ubuntu-latest
+    needs:
+      - A1-Update-Scripting
+      - A2-Quality-Gate
+      - A3-Report
+    steps:
+      - name: Echo
+        run: echo "This is a build workflow."
+
+  C1-Changelog:
+    runs-on: ubuntu-latest
+    needs: B1-Build
+    steps:
+      - name: Echo
+        run: echo "This is a build workflow."
+
+  T1-Unit-Tests:
+    runs-on: ubuntu-latest
+    needs: B1-Build
+    steps:
+      - name: Echo
+        run: echo "This is a build workflow."
+
+  T2-Integration-Tests:
+    runs-on: ubuntu-latest
+    needs: B1-Build
+    steps:
+      - name: Echo
+        run: echo "This is a build workflow."
+
+  T3-E2E-Tests:
+    runs-on: ubuntu-latest
+    needs: B1-Build
+    steps:
+      - name: Echo
+        run: echo "This is a build workflow."
+
+  X1-Release:
+    runs-on: ubuntu-latest
+    needs:
+      - C1-Changelog
+      - T1-Unit-Tests
+      - T2-Integration-Tests
+      - T3-E2E-Tests
+    steps:
+      - name: Echo
+        run: echo "This is a build workflow."
+
+  Z1-Deploy-QA:
+    runs-on: ubuntu-latest
+    needs: X1-Release
+    steps:
+      - name: Echo
+        run: echo "This is a build workflow."
+
+  Z2-Deploy-Prod:
+    runs-on: ubuntu-latest
+    needs: X1-Release
+    steps:
+      - name: Echo
+        run: echo "This is a build workflow."
+
+
+
+
+
+
+
